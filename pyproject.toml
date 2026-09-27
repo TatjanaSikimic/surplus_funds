@@ -14,6 +14,7 @@ dependencies = [
     "sqlalchemy>=2.0",
     "psycopg[binary]>=3.2", # PostgreSQL driverm=
     "alembic>=1.13",
+    "python-dotenv>=1.0", # reads key-value pairs vrom .env file and loads them as env variables
 
 ]
 
