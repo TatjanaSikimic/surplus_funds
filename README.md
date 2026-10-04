@@ -4,6 +4,8 @@ Python pipeline that extracts surplus funds (excess proceeds) data from county t
 
 Counties publish lists of money left over after tax sales, owed to former property owners, as PDF files or HTML pages, each in its own format. This project downloads those lists, parses them into one common structure, and stores them in PostgreSQL, where they can be searched and exported.
 
+[![Surplus funds HTML export](docs/images/html-report.png)](docs/images/html-report.png)
+
 ## How it works
 
 ```
@@ -181,11 +183,15 @@ The `Jenkinsfile` runs on every build:
 | Smoke test CLI | scrapes the Hall County PDF and exports it to Excel, CSV and HTML |
 | Dependency audit | `pip-audit`; marks the build unstable on known vulnerabilities |
 
+[![Jenkins pipeline](docs/images/jenkins-pipeline.png)](docs/images/jenkins-pipeline.png)
+
 Build results:
 
 - **Test Result**: test results and trend, from `reports/junit.xml`
 - **Coverage Report** and **Surplus Funds**: HTML reports, linked in the build's side menu (requires the HTML Publisher plugin)
 - **Build Artifacts**: `surplus_funds.xlsx`, `surplus_funds.csv`, `junit.xml`
+
+[![Coverage report](docs/images/coverage-report.png)](docs/images/coverage-report.png)
 
 ### Running Jenkins locally
 
