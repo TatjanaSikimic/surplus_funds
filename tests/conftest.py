@@ -16,8 +16,7 @@ def hall_pdf() -> bytes:
 
 @pytest.fixture
 def session():
-    """A database session whose changes are rolled back after the test.
-    """
+    """A database session whose changes are rolled back after the test."""
     from surplus_funds.db import engine
 
     try:
