@@ -114,9 +114,7 @@ def get_fund(session: Session, fund_id: int) -> SurplusFund | None:
     return session.get(SurplusFund, fund_id)
 
 
-def get_fund_by_external_id(
-    session: Session, source_id: int, external_id: str
-) -> SurplusFund | None:
+def get_fund_by_external_id(session: Session, source_id: int, external_id: str) -> SurplusFund | None:
     stmt = select(SurplusFund).where(
         SurplusFund.source_id == source_id,
         SurplusFund.external_id == external_id,
@@ -183,12 +181,7 @@ def list_funds(
 
 def count_funds(session: Session, **filters: Any) -> int:
     """Count funds matching the same filters as list_funds (useful for pagination)."""
-    stmt = (
-        select(func.count())
-        .select_from(SurplusFund)
-        .join(SurplusFund.source)
-        .where(*_fund_filters(**filters))
-    )
+    stmt = select(func.count()).select_from(SurplusFund).join(SurplusFund.source).where(*_fund_filters(**filters))
     return session.scalar(stmt) or 0
 
 
@@ -236,11 +229,7 @@ def upsert_funds(session: Session, source: Source, records: Iterable[dict[str, A
     for start in range(0, len(rows), _UPSERT_BATCH_SIZE):
         batch = rows[start : start + _UPSERT_BATCH_SIZE]
         stmt = insert(SurplusFund).values(batch)
-        updates = {
-            name: stmt.excluded[name]
-            for name in batch[0]
-            if name not in _FUND_PROTECTED
-        }
+        updates = {name: stmt.excluded[name] for name in batch[0] if name not in _FUND_PROTECTED}
         updates["last_seen_at"] = func.now()
         stmt = stmt.on_conflict_do_update(
             index_elements=["source_id", "external_id"],

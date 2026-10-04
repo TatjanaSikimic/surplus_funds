@@ -23,11 +23,11 @@ class Source(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     key: Mapped[str] = mapped_column(String(100), unique=True)  # e.g. "ga_hall"
-    state: Mapped[str] = mapped_column(String(2))               # e.g. "GA"
-    county: Mapped[str] = mapped_column(String(100))            # e.g. "Hall"
-    agency: Mapped[str | None] = mapped_column(String(255))     # e.g. "Tax Commissioner"
+    state: Mapped[str] = mapped_column(String(2))  # e.g. "GA"
+    county: Mapped[str] = mapped_column(String(100))  # e.g. "Hall"
+    agency: Mapped[str | None] = mapped_column(String(255))  # e.g. "Tax Commissioner"
     url: Mapped[str] = mapped_column(String(500))
-    file_format: Mapped[str] = mapped_column(String(10))        # "pdf" or "html"
+    file_format: Mapped[str] = mapped_column(String(10))  # "pdf" or "html"
 
     list_updated_at: Mapped[date | None] = mapped_column(Date)  # date printed on the list itself
     last_scraped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -55,16 +55,12 @@ class SurplusFund(Base):
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     sale_date: Mapped[date | None] = mapped_column(Date)
     sale_date_precision: Mapped[str | None] = mapped_column(String(10))  # "day" or "month"
-    status: Mapped[str | None] = mapped_column(String(50))              # e.g. "pending_claim"
+    status: Mapped[str | None] = mapped_column(String(50))  # e.g. "pending_claim"
 
     # Original row from the list, including any source-specific fields
     raw_data: Mapped[dict] = mapped_column(JSONB, default=dict)
 
-    first_seen_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    last_seen_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     source: Mapped[Source] = relationship(back_populates="funds")

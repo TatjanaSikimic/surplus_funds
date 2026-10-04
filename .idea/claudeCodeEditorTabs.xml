@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ClaudeCodeEditorTabs">
+    <option name="activeSessionId" value="56371c51-c3e7-44d7-9181-2f155258bd9a" />
+    <option name="openSessionIds">
+      <list>
+        <option value="04083db6-c095-4a44-be16-ae14981d4018" />
+        <option value="77e91632-dafd-487e-9262-e3efe497e501" />
+        <option value="71bd66d9-ab51-4481-ab07-5bc35d2d25a8" />
+        <option value="56371c51-c3e7-44d7-9181-2f155258bd9a" />
+      </list>
+    </option>
+    <option name="sessionPaths">
+      <map>
+        <entry key="04083db6-c095-4a44-be16-ae14981d4018" value="/sessions/new" />
+        <entry key="56371c51-c3e7-44d7-9181-2f155258bd9a" value="/sessions/2a44e6f1-ec1a-4a74-887b-2fb3edfaddfa" />
+        <entry key="71bd66d9-ab51-4481-ab07-5bc35d2d25a8" value="/sessions/3f6d47fd-dd9e-4ada-a28a-8526d553ae27" />
+        <entry key="77e91632-dafd-487e-9262-e3efe497e501" value="/sessions/new" />
+      </map>
+    </option>
+    <option name="sessionTitles">
+      <map>
+        <entry key="04083db6-c095-4a44-be16-ae14981d4018" value="Claude Code" />
+        <entry key="56371c51-c3e7-44d7-9181-2f155258bd9a" value="Htjela bih da imam Jenkins pipeline za ovaj poroje" />
+        <entry key="71bd66d9-ab51-4481-ab07-5bc35d2d25a8" value="@src/surplus_funds/sources/ Mozes li daobjasnis z" />
+        <entry key="77e91632-dafd-487e-9262-e3efe497e501" value="Claude Code" />
+      </map>
+    </option>
+  </component>
+</project>

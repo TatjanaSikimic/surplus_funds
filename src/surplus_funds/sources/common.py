@@ -9,14 +9,14 @@ _USER_AGENT = "Mozilla/5.0 (compatible; surplus-funds-aggregator/0.1)"
 
 # Date formats seen on county lists, with the precision each one carries.
 _DATE_FORMATS = (
-    ("%B %d, %Y", "day"),    # November 25, 2016
-    ("%b %d, %Y", "day"),    # Nov 25, 2016
-    ("%m/%d/%Y", "day"),     # 11/25/2016
-    ("%m/%d/%y", "day"),     # 11/25/16
-    ("%Y-%m-%d", "day"),     # 2016-11-25
-    ("%B %Y", "month"),      # May 2021
-    ("%b %Y", "month"),      # Aug 2021
-    ("%m/%Y", "month"),      # 05/2021
+    ("%B %d, %Y", "day"),  # November 25, 2016
+    ("%b %d, %Y", "day"),  # Nov 25, 2016
+    ("%m/%d/%Y", "day"),  # 11/25/2016
+    ("%m/%d/%y", "day"),  # 11/25/16
+    ("%Y-%m-%d", "day"),  # 2016-11-25
+    ("%B %Y", "month"),  # May 2021
+    ("%b %Y", "month"),  # Aug 2021
+    ("%m/%Y", "month"),  # 05/2021
 )
 
 

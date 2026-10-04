@@ -1,16 +1,14 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+
+import surplus_funds.models  # noqa: F401 - registers models on Base.metadata
+from surplus_funds.db import DATABASE_URL, Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-
-from surplus_funds.db import Base, DATABASE_URL
-import surplus_funds.models  # noqa: F401 - registers models on Base.metadata
 
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
@@ -69,9 +67,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

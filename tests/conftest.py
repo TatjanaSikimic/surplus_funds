@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -25,8 +26,8 @@ def session():
 
     try:
         connection = engine.connect()
-    except OperationalError:
-        pytest.skip("PostgreSQL is not running (docker compose up -d)")
+    except OperationalError as exc:
+        pytest.fail(f"PostgreSQL is not available (docker compose up -d): {exc}", pytrace=False)
 
     transaction = connection.begin()
     session = Session(bind=connection, join_transaction_mode="create_savepoint")

@@ -1,10 +1,10 @@
 """Command-line interface: surplus-funds <command>.
 
-    surplus-funds sources                      list configured sources
-    surplus-funds scrape ga_hall               download, parse and store a list
-    surplus-funds scrape ga_hall --file x.pdf  same, from a local file
-    surplus-funds funds --state GA             search stored funds
-    surplus-funds stale ga_hall                funds missing from the latest list
+surplus-funds sources                      list configured sources
+surplus-funds scrape ga_hall               download, parse and store a list
+surplus-funds scrape ga_hall --file x.pdf  same, from a local file
+surplus-funds funds --state GA             search stored funds
+surplus-funds stale ga_hall                funds missing from the latest list
 """
 
 import argparse

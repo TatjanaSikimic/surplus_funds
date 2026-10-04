@@ -13,8 +13,13 @@ SOURCE_CONFIGS = [
         file_format="pdf",
         # The header is printed above the table grid, so it's listed here explicitly.
         columns=(
-            "TAX SALE DATE", "BUYER", "MAPCODE", "ORIGINAL OWNER",
-            "PROPERTY ADDRESS", "CITY", "EXCESS FUNDS",
+            "TAX SALE DATE",
+            "BUYER",
+            "MAPCODE",
+            "ORIGINAL OWNER",
+            "PROPERTY ADDRESS",
+            "CITY",
+            "EXCESS FUNDS",
         ),
     ),
     # Template for a list whose header row is part of the table (most lists):

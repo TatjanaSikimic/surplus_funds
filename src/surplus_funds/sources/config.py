@@ -13,11 +13,11 @@ class SourceConfig:
     lists that don't follow the usual patterns.
     """
 
-    key: str            # unique identifier, e.g. "ga_hall"
-    state: str          # two-letter state code
+    key: str  # unique identifier, e.g. "ga_hall"
+    state: str  # two-letter state code
     county: str
     url: str
-    file_format: str    # "pdf" or "html"
+    file_format: str  # "pdf" or "html"
     agency: str | None = None
 
     # Header names in column order, for tables whose header row is not part

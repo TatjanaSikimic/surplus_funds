@@ -25,38 +25,78 @@ logger = logging.getLogger(__name__)
 # Headers are compared after normalize_header(), so case and punctuation don't matter.
 FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "parcel_id": (
-        "PARCEL", "PARCEL NUMBER", "PARCEL NO", "PARCEL ID", "MAPCODE", "MAP CODE",
-        "PIN", "PARCEL IDENTIFICATION NUMBER", "ACCOUNT NUMBER", "TAX ID",
+        "PARCEL",
+        "PARCEL NUMBER",
+        "PARCEL NO",
+        "PARCEL ID",
+        "MAPCODE",
+        "MAP CODE",
+        "PIN",
+        "PARCEL IDENTIFICATION NUMBER",
+        "ACCOUNT NUMBER",
+        "TAX ID",
     ),
     "case_number": (
-        "CASE", "CASE NUMBER", "CASE NO", "TAX DEED NUMBER", "TAX DEED NO",
-        "CERTIFICATE NUMBER", "FILE NUMBER",
+        "CASE",
+        "CASE NUMBER",
+        "CASE NO",
+        "TAX DEED NUMBER",
+        "TAX DEED NO",
+        "CERTIFICATE NUMBER",
+        "FILE NUMBER",
     ),
     "owner_name": (
-        "OWNER", "OWNER NAME", "ORIGINAL OWNER", "PROPERTY OWNER", "FORMER OWNER",
-        "OWNER OF RECORD", "DEFENDANT",
+        "OWNER",
+        "OWNER NAME",
+        "ORIGINAL OWNER",
+        "PROPERTY OWNER",
+        "FORMER OWNER",
+        "OWNER OF RECORD",
+        "DEFENDANT",
     ),
     "buyer_name": ("BUYER", "NAME OF BUYER", "PURCHASER", "SUCCESSFUL BIDDER", "HIGH BIDDER"),
     "property_address": (
-        "SITUS", "SITUS ADDRESS", "PROPERTY ADDRESS", "ADDRESS", "PROPERTY LOCATION",
+        "SITUS",
+        "SITUS ADDRESS",
+        "PROPERTY ADDRESS",
+        "ADDRESS",
+        "PROPERTY LOCATION",
         "LOCATION",
     ),
     "city": ("CITY",),
     "amount": (
-        "EXCESS FUNDS", "EXCESS", "EXCESS AMOUNT", "EXCESS PROCEEDS", "SURPLUS",
-        "SURPLUS FUNDS", "SURPLUS AMOUNT", "OVERAGE", "AMOUNT", "BALANCE",
+        "EXCESS FUNDS",
+        "EXCESS",
+        "EXCESS AMOUNT",
+        "EXCESS PROCEEDS",
+        "SURPLUS",
+        "SURPLUS FUNDS",
+        "SURPLUS AMOUNT",
+        "OVERAGE",
+        "AMOUNT",
+        "BALANCE",
         "AMOUNT AVAILABLE",
     ),
     "sale_date": (
-        "SALE DATE", "TAX SALE DATE", "DATE OF SALE", "DATE SOLD", "AUCTION DATE",
-        "TAX SALE MONTH/YEAR", "SALE MONTH/YEAR",
+        "SALE DATE",
+        "TAX SALE DATE",
+        "DATE OF SALE",
+        "DATE SOLD",
+        "AUCTION DATE",
+        "TAX SALE MONTH/YEAR",
+        "SALE MONTH/YEAR",
     ),
     "status": ("STATUS", "CLAIM STATUS"),
 }
 
 TEXT_FIELDS = (
-    "parcel_id", "case_number", "owner_name", "buyer_name",
-    "property_address", "city", "status",
+    "parcel_id",
+    "case_number",
+    "owner_name",
+    "buyer_name",
+    "property_address",
+    "city",
+    "status",
 )
 
 
@@ -67,9 +107,7 @@ def normalize_header(text: str) -> str:
 
 
 _ALIAS_TO_FIELD = {
-    normalize_header(alias): field_name
-    for field_name, aliases in FIELD_ALIASES.items()
-    for alias in aliases
+    normalize_header(alias): field_name for field_name, aliases in FIELD_ALIASES.items() for alias in aliases
 }
 
 
@@ -140,13 +178,8 @@ class TableParser(ABC):
             return mapping
         return None
 
-    def _build_record(
-        self, cells: list[str], mapping: dict[int, str], headers: list[str]
-    ) -> dict[str, Any] | None:
-        values = {
-            field_name: cells[index] if index < len(cells) else ""
-            for index, field_name in mapping.items()
-        }
+    def _build_record(self, cells: list[str], mapping: dict[int, str], headers: list[str]) -> dict[str, Any] | None:
+        values = {field_name: cells[index] if index < len(cells) else "" for index, field_name in mapping.items()}
         raw_data = {
             (headers[i] if i < len(headers) and headers[i] else f"column_{i}"): cell
             for i, cell in enumerate(cells)
@@ -164,8 +197,7 @@ class TableParser(ABC):
             try:
                 sale_date, precision = parse_sale_date(values["sale_date"])
             except ValueError:
-                logger.warning("%s: unreadable sale date kept in raw_data: %r",
-                               self.config.key, values["sale_date"])
+                logger.warning("%s: unreadable sale date kept in raw_data: %r", self.config.key, values["sale_date"])
 
         # Every record has the same keys, which upsert_funds requires.
         record: dict[str, Any] = {name: values.get(name) or None for name in TEXT_FIELDS}
@@ -178,8 +210,7 @@ class TableParser(ABC):
 
         id_parts = [record.get(name) for name in self.config.id_fields]
         if any(part is None for part in id_parts):
-            logger.warning("%s: row missing %s skipped: %s",
-                           self.config.key, "/".join(self.config.id_fields), raw_data)
+            logger.warning("%s: row missing %s skipped: %s", self.config.key, "/".join(self.config.id_fields), raw_data)
             return None
         record["external_id"] = "|".join(str(part) for part in id_parts)
         return record

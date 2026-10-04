@@ -19,7 +19,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",   # code coverage with tests
+    "ruff>=0.6",       # PEP 8, lint, formatting
+    "pip-audit>=2.7",  # known vulnerabilities
+]
+
 
 [project.scripts]
 surplus-funds = "surplus_funds.cli:main"
@@ -30,3 +36,16 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# E/W = PEP 8, F = pyflakes, I = import order,
+# B = usual bugs, UP = modern sintax, S = security
+select = ["E", "W", "F", "I", "B", "UP", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]

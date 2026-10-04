@@ -7,8 +7,7 @@ from surplus_funds.sources import SOURCES, HtmlParser, PdfParser, SourceConfig, 
 
 
 def html_config(**overrides) -> SourceConfig:
-    fields = dict(key="test_html", state="GA", county="Test", url="https://example.com",
-                  file_format="html")
+    fields = dict(key="test_html", state="GA", county="Test", url="https://example.com", file_format="html")
     return SourceConfig(**{**fields, **overrides})
 
 
@@ -85,10 +84,13 @@ def test_html_parser_detects_header_and_skips_bad_rows():
 
 
 def test_header_repeated_on_every_page():
-    html = HTML_LIST.replace(b"</table>", b"""
+    html = HTML_LIST.replace(
+        b"</table>",
+        b"""
       <tr><th>Parcel #</th><th>Owner Name</th><th>Sale Date</th><th>Excess Amount</th></tr>
       <tr><td>B-1</td><td>NEW PAGE</td><td>Aug 2021</td><td>$5</td></tr>
-    </table>""")
+    </table>""",
+    )
     records = get_parser(html_config()).parse(html)
     assert [r["parcel_id"] for r in records] == ["A-1", "A-3", "B-1"]
 
