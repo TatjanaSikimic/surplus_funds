@@ -1,0 +1,17 @@
+services:
+    jenkins:
+      build: .
+      ports:
+        - "8080:8080"
+      volumes:
+        - jenkins_home:/var/jenkins_home
+
+    db:
+      image: postgres:18
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: surplus_funds
+
+volumes:
+  jenkins_home:
