@@ -109,6 +109,23 @@ def test_unknown_header_needs_override():
     assert records[0]["amount"] == Decimal("99.99")
 
 
+UNREADABLE_DATE = b"""<table>
+  <tr><th>Parcel</th><th>Sale Date</th><th>Amount</th></tr>
+  <tr><td>D-1</td><td>sometime in 2021</td><td>$10</td></tr>
+</table>"""
+
+
+def test_unreadable_sale_date_skips_row_when_part_of_id():
+    # The default external_id needs sale_date, so the row can't be stored.
+    assert get_parser(html_config()).parse(UNREADABLE_DATE) == []
+
+
+def test_unreadable_sale_date_kept_in_raw_data():
+    records = get_parser(html_config(id_fields=("parcel_id",))).parse(UNREADABLE_DATE)
+    assert records[0]["sale_date"] is None
+    assert records[0]["raw_data"]["Sale Date"] == "sometime in 2021"
+
+
 def test_custom_id_fields():
     config = html_config(id_fields=("parcel_id",))
     records = get_parser(config).parse(HTML_LIST)

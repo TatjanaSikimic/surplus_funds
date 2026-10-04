@@ -1,6 +1,7 @@
 from dataclasses import replace
 from decimal import Decimal
 
+import pytest
 from sqlalchemy import func, update
 
 from surplus_funds import storage
@@ -88,3 +89,83 @@ def test_list_funds_filters(session, hall_pdf):
 
     by_owner = storage.list_funds(session, source_id=source.id, owner_name="newcomb")
     assert [f.parcel_id for f in by_owner] == ["15025A000047"]
+
+    # State and county are case-insensitive; every filter combines with AND.
+    exact = storage.list_funds(
+        session,
+        source_id=source.id,
+        state="ga",
+        county="HALL",
+        parcel_id="15025A000047",
+        max_amount=Decimal("500"),
+    )
+    assert [f.owner_name for f in exact] == ["NEWCOMB ALVIN"]
+    small = storage.list_funds(session, source_id=source.id, max_amount=Decimal("100"))
+    assert small
+    assert all(f.amount <= Decimal("100") for f in small)
+
+
+# ---------------------------------------------------------------------------
+# CRUD
+# ---------------------------------------------------------------------------
+
+
+def new_source(session, key="test_source", state="TX"):
+    return storage.create_source(
+        session, key, state=state, county="Test", url="https://example.com", file_format="html"
+    )
+
+
+def test_source_crud(session):
+    source = new_source(session)
+    assert storage.get_source(session, source.id) is source
+    assert storage.get_source_by_key(session, "test_source") is source
+    assert storage.get_or_create_source(session, "test_source") is source
+
+    sources = storage.list_sources(session, state="tx")
+    assert "test_source" in [s.key for s in sources]
+    assert all(s.state == "TX" for s in sources)
+
+    updated = storage.update_source(session, source.id, county="Renamed")
+    assert updated.county == "Renamed"
+    assert storage.update_source(session, -1, county="X") is None
+
+
+def test_update_rejects_unknown_and_protected_columns(session):
+    source = new_source(session)
+    with pytest.raises(ValueError, match="no column 'colour'"):
+        storage.update_source(session, source.id, colour="red")
+    with pytest.raises(ValueError, match="'id' cannot be updated"):
+        storage.update_source(session, source.id, id=999)
+
+
+def test_fund_crud(session):
+    source = new_source(session)
+    fund = storage.create_fund(session, source, "A-1", Decimal("100.00"), owner_name="JOHN DOE")
+    assert storage.get_fund(session, fund.id) is fund
+    assert storage.get_fund_by_external_id(session, source.id, "A-1") is fund
+
+    storage.update_fund(session, fund.id, status="claimed")
+    assert storage.list_funds(session, source_id=source.id, status="claimed") == [fund]
+    assert storage.update_fund(session, -1, status="claimed") is None
+    with pytest.raises(ValueError, match="'external_id' cannot be updated"):
+        storage.update_fund(session, fund.id, external_id="B-2")
+
+    assert storage.delete_fund(session, fund.id) is True
+    assert storage.delete_fund(session, fund.id) is False
+    session.expire_all()
+    assert storage.get_fund(session, fund.id) is None
+
+
+def test_delete_source_removes_its_funds(session):
+    source = new_source(session)
+    storage.create_fund(session, source, "A-1", Decimal("1"))
+    storage.create_fund(session, source, "A-2", Decimal("2"))
+
+    assert storage.delete_source(session, source.id) is True
+    assert storage.count_funds(session, source_id=source.id) == 0
+    assert storage.delete_source(session, source.id) is False
+
+
+def test_no_stale_funds_before_first_scrape(session):
+    assert storage.list_stale_funds(session, new_source(session)) == []

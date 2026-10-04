@@ -37,6 +37,7 @@ pipeline {
                     .venv/bin/pytest \
                         --junitxml=reports/junit.xml \
                         --cov=surplus_funds \
+                        --cov-fail-under=90 \
                         --cov-report=term \
                         --cov-report=html:reports/htmlcov
                 '''

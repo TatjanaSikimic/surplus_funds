@@ -128,14 +128,17 @@ Or with a GUI client (DBeaver, pgAdmin, PyCharm Database tool):
 Add a `SourceConfig` to `SOURCE_CONFIGS` in `src/surplus_funds/sources/registry.py`:
 
 ```python
-SourceConfig(
-    key="ga_example",
-    state="GA",
-    county="Example",
-    agency="Tax Commissioner",
-    url="https://...",
-    file_format="pdf",   # or "html"
-),
+SOURCE_CONFIGS = [
+    ...,
+    SourceConfig(
+        key="ga_example",
+        state="GA",
+        county="Example",
+        agency="Tax Commissioner",
+        url="https://...",
+        file_format="pdf",  # or "html"
+    ),
+]
 ```
 
 For most lists that is enough, because the parser detects columns from the table header. For lists that don't follow the usual patterns, the optional fields help:
@@ -179,7 +182,7 @@ The `Jenkinsfile` runs on every build:
 | Setup | creates a virtual environment and installs the project |
 | Lint (PEP 8) | `ruff check` and `ruff format --check` |
 | Migrations | `alembic downgrade base` + `upgrade head`, verifying migrations in both directions |
-| Tests | pytest with JUnit and coverage reports |
+| Tests | pytest with JUnit and coverage reports; fails if coverage drops below 90% |
 | Smoke test CLI | scrapes the Hall County PDF and exports it to Excel, CSV and HTML |
 | Dependency audit | `pip-audit`; marks the build unstable on known vulnerabilities |
 
