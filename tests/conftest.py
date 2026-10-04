@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -18,9 +17,6 @@ def hall_pdf() -> bytes:
 @pytest.fixture
 def session():
     """A database session whose changes are rolled back after the test.
-
-    Requires the PostgreSQL container (docker compose up -d) and applied
-    migrations (alembic upgrade head); the test is skipped otherwise.
     """
     from surplus_funds.db import engine
 
