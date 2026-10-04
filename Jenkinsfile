@@ -51,6 +51,13 @@ pipeline {
                     .venv/bin/surplus-funds scrape ga_hall --file Website-Excess-Funds-List-09-29-2023.pdf
                     .venv/bin/surplus-funds funds --state GA --limit 5
                     .venv/bin/surplus-funds stale ga_hall
+
+                    # Exports land in reports/, so they are archived as build artifacts.
+                    mkdir -p reports/exports
+                    .venv/bin/surplus-funds export reports/exports/surplus_funds.xlsx
+                    .venv/bin/surplus-funds export reports/exports/surplus_funds.csv
+                    test -s reports/exports/surplus_funds.xlsx
+                    test "$(wc -l < reports/exports/surplus_funds.csv)" -gt 1
                 '''
             }
         }

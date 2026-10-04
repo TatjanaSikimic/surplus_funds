@@ -157,11 +157,11 @@ def _fund_filters(
 def list_funds(
     session: Session,
     *,
-    limit: int = 100,
+    limit: int | None = 100,
     offset: int = 0,
     **filters: Any,
 ) -> Sequence[SurplusFund]:
-    """Search funds, largest amounts first.
+    """Search funds, largest amounts first. limit=None returns all matches.
 
     Filters: source_id, state, county, owner_name (partial, case-insensitive),
     parcel_id, status, min_amount, max_amount.

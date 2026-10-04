@@ -4,6 +4,7 @@ surplus-funds sources                      list configured sources
 surplus-funds scrape ga_hall               download, parse and store a list
 surplus-funds scrape ga_hall --file x.pdf  same, from a local file
 surplus-funds funds --state GA             search stored funds
+surplus-funds export funds.xlsx --state GA export funds to Excel or CSV
 surplus-funds stale ga_hall                funds missing from the latest list
 """
 
@@ -13,6 +14,7 @@ import sys
 from collections.abc import Sequence
 from decimal import Decimal
 from pathlib import Path
+from typing import Any
 
 import requests
 
@@ -62,11 +64,22 @@ def cmd_scrape(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_funds(args: argparse.Namespace) -> int:
-    from surplus_funds import storage
-    from surplus_funds.db import SessionLocal
+def add_filter_arguments(parser: argparse.ArgumentParser) -> None:
+    """Filter options shared by the funds and export commands."""
+    parser.add_argument("--source", help="source key, e.g. ga_hall")
+    parser.add_argument("--state")
+    parser.add_argument("--county")
+    parser.add_argument("--owner", help="partial, case-insensitive match")
+    parser.add_argument("--parcel")
+    parser.add_argument("--min-amount", type=Decimal)
+    parser.add_argument("--max-amount", type=Decimal)
 
-    filters = {
+
+def build_filters(session, args: argparse.Namespace) -> dict[str, Any] | None:
+    """Turn filter options into list_funds arguments. None if --source is unknown."""
+    from surplus_funds import storage
+
+    filters: dict[str, Any] = {
         "state": args.state,
         "county": args.county,
         "owner_name": args.owner,
@@ -74,13 +87,23 @@ def cmd_funds(args: argparse.Namespace) -> int:
         "min_amount": args.min_amount,
         "max_amount": args.max_amount,
     }
+    if args.source:
+        source = storage.get_source_by_key(session, args.source)
+        if source is None:
+            print(f"error: source {args.source!r} has not been scraped yet", file=sys.stderr)
+            return None
+        filters["source_id"] = source.id
+    return filters
+
+
+def cmd_funds(args: argparse.Namespace) -> int:
+    from surplus_funds import storage
+    from surplus_funds.db import SessionLocal
+
     with SessionLocal() as session:
-        if args.source:
-            source = storage.get_source_by_key(session, args.source)
-            if source is None:
-                print(f"error: source {args.source!r} has not been scraped yet", file=sys.stderr)
-                return 1
-            filters["source_id"] = source.id
+        filters = build_filters(session, args)
+        if filters is None:
+            return 1
 
         funds = storage.list_funds(session, limit=args.limit, **filters)
         total = storage.count_funds(session, **filters)
@@ -92,6 +115,32 @@ def cmd_funds(args: argparse.Namespace) -> int:
                 f"{fund.owner_name or ''}"
             )
     print(f"showing {len(funds)} of {total}")
+    return 0
+
+
+def cmd_export(args: argparse.Namespace) -> int:
+    from surplus_funds import storage
+    from surplus_funds.db import SessionLocal
+    from surplus_funds.export import check_export_path, export_funds
+
+    try:
+        check_export_path(args.path)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    with SessionLocal() as session:
+        filters = build_filters(session, args)
+        if filters is None:
+            return 1
+
+        funds = storage.list_funds(session, limit=None, **filters)
+        try:
+            count = export_funds(funds, args.path)
+        except PermissionError:
+            print(f"error: cannot write {args.path}, is it open in Excel?", file=sys.stderr)
+            return 1
+    print(f"{count} funds exported to {args.path}")
     return 0
 
 
@@ -129,15 +178,14 @@ def build_parser() -> argparse.ArgumentParser:
     scrape.set_defaults(handler=cmd_scrape)
 
     funds = commands.add_parser("funds", help="search stored funds, largest first")
-    funds.add_argument("--source", help="source key, e.g. ga_hall")
-    funds.add_argument("--state")
-    funds.add_argument("--county")
-    funds.add_argument("--owner", help="partial, case-insensitive match")
-    funds.add_argument("--parcel")
-    funds.add_argument("--min-amount", type=Decimal)
-    funds.add_argument("--max-amount", type=Decimal)
+    add_filter_arguments(funds)
     funds.add_argument("--limit", type=int, default=20)
     funds.set_defaults(handler=cmd_funds)
+
+    export = commands.add_parser("export", help="export funds to a .csv or .xlsx file")
+    export.add_argument("path", type=Path, help="output file, e.g. funds.xlsx or funds.csv")
+    add_filter_arguments(export)
+    export.set_defaults(handler=cmd_export)
 
     stale = commands.add_parser("stale", help="funds missing from the latest list")
     stale.add_argument("key", help="source key, e.g. ga_hall")
