@@ -52,12 +52,14 @@ pipeline {
                     .venv/bin/surplus-funds funds --state GA --limit 5
                     .venv/bin/surplus-funds stale ga_hall
 
-                    # Exports land in reports/, so they are archived as build artifacts.
+                    # Excel/CSV are archived as artifacts, the HTML page is published as a report.
                     mkdir -p reports/exports
                     .venv/bin/surplus-funds export reports/exports/surplus_funds.xlsx
                     .venv/bin/surplus-funds export reports/exports/surplus_funds.csv
+                    .venv/bin/surplus-funds export reports/exports/surplus_funds.html
                     test -s reports/exports/surplus_funds.xlsx
                     test "$(wc -l < reports/exports/surplus_funds.csv)" -gt 1
+                    grep -q "<td" reports/exports/surplus_funds.html
                 '''
             }
         }
@@ -74,7 +76,26 @@ pipeline {
     post {
         always {
             junit allowEmptyResults: true, testResults: 'reports/junit.xml'
-            archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true
+            // Only files meant for download; HTML reports are published below.
+            archiveArtifacts artifacts: 'reports/exports/*.xlsx, reports/exports/*.csv, reports/junit.xml',
+                             allowEmptyArchive: true
+            // Requires the HTML Publisher plugin. Each report gets a link on the build page.
+            publishHTML(target: [
+                reportName: 'Coverage Report',
+                reportDir: 'reports/htmlcov',
+                reportFiles: 'index.html',
+                keepAll: true,
+                alwaysLinkToLastBuild: true,
+                allowMissing: true,
+            ])
+            publishHTML(target: [
+                reportName: 'Surplus Funds',
+                reportDir: 'reports/exports',
+                reportFiles: 'surplus_funds.html',
+                keepAll: true,
+                alwaysLinkToLastBuild: true,
+                allowMissing: true,
+            ])
         }
     }
 }

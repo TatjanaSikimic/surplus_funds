@@ -1,8 +1,10 @@
-"""Export surplus funds to CSV or Excel (.xlsx)."""
+"""Export surplus funds to CSV, Excel (.xlsx) or an HTML page."""
 
 import csv
+import html
 from collections.abc import Callable, Iterable
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -102,19 +104,88 @@ def export_excel(funds: Iterable[SurplusFund], path: Path) -> int:
     return count
 
 
+# The stylesheet is a separate file, not inline: Jenkins' default Content
+# Security Policy blocks inline styles and scripts in published HTML reports.
+_HTML_CSS = """\
+body { font-family: Segoe UI, Helvetica, Arial, sans-serif; margin: 24px; color: #222; }
+h1 { font-size: 22px; margin-bottom: 4px; }
+.summary { color: #555; margin-bottom: 16px; }
+table { border-collapse: collapse; font-size: 13px; }
+th { background: #2f4f6f; color: #fff; text-align: left; position: sticky; top: 0; }
+th, td { padding: 6px 10px; border-bottom: 1px solid #ddd; white-space: nowrap; }
+tr:nth-child(even) td { background: #f5f7fa; }
+td.number { text-align: right; font-variant-numeric: tabular-nums; }
+"""
+
+
+def _html_cell(header: str, value: Any) -> str:
+    if value is None:
+        return "<td></td>"
+    if header == "Source URL":
+        url = html.escape(value)
+        return f'<td><a href="{url}">source</a></td>'
+    if isinstance(value, Decimal):
+        return f'<td class="number">${value:,.2f}</td>'
+    if isinstance(value, datetime):
+        return f"<td>{value:%Y-%m-%d %H:%M}</td>"
+    if isinstance(value, date):
+        return f"<td>{value:%Y-%m-%d}</td>"
+    return f"<td>{html.escape(str(value))}</td>"
+
+
+def export_html(funds: Iterable[SurplusFund], path: Path) -> int:
+    """Write funds to an HTML page plus a stylesheet next to it. Returns the row count."""
+    funds = list(funds)
+    css_path = path.with_suffix(".css")
+    css_path.write_text(_HTML_CSS, encoding="utf-8")
+
+    total = sum((fund.amount for fund in funds), Decimal(0))
+    generated = datetime.now().strftime("%Y-%m-%d %H:%M")
+    header_row = "".join(f"<th>{html.escape(header)}</th>" for header in HEADERS)
+    body_rows = "\n".join(
+        "<tr>" + "".join(_html_cell(header, value) for header, value in zip(HEADERS, _row(fund), strict=True)) + "</tr>"
+        for fund in funds
+    )
+
+    path.write_text(
+        f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Surplus Funds</title>
+<link rel="stylesheet" href="{html.escape(css_path.name)}">
+</head>
+<body>
+<h1>Surplus Funds</h1>
+<p class="summary">{len(funds)} funds, total ${total:,.2f}. Generated {generated}.</p>
+<table>
+<thead><tr>{header_row}</tr></thead>
+<tbody>
+{body_rows}
+</tbody>
+</table>
+</body>
+</html>
+""",
+        encoding="utf-8",
+    )
+    return len(funds)
+
+
 _EXPORTERS: dict[str, Callable[[Iterable[SurplusFund], Path], int]] = {
     ".csv": export_csv,
     ".xlsx": export_excel,
+    ".html": export_html,
 }
 
 
 def check_export_path(path: Path) -> None:
     """Raise ValueError if the file extension isn't a supported format."""
     if path.suffix.lower() not in _EXPORTERS:
-        raise ValueError(f"unsupported file type {path.suffix!r}, use .csv or .xlsx")
+        raise ValueError(f"unsupported file type {path.suffix!r}, use {', '.join(_EXPORTERS)}")
 
 
 def export_funds(funds: Iterable[SurplusFund], path: Path) -> int:
-    """Export to CSV or Excel depending on the file extension."""
+    """Export to CSV, Excel or HTML depending on the file extension."""
     check_export_path(path)
     return _EXPORTERS[path.suffix.lower()](funds, path)

@@ -4,7 +4,7 @@ surplus-funds sources                      list configured sources
 surplus-funds scrape ga_hall               download, parse and store a list
 surplus-funds scrape ga_hall --file x.pdf  same, from a local file
 surplus-funds funds --state GA             search stored funds
-surplus-funds export funds.xlsx --state GA export funds to Excel or CSV
+surplus-funds export funds.xlsx --state GA export funds to Excel, CSV or HTML
 surplus-funds stale ga_hall                funds missing from the latest list
 """
 
@@ -182,7 +182,7 @@ def build_parser() -> argparse.ArgumentParser:
     funds.add_argument("--limit", type=int, default=20)
     funds.set_defaults(handler=cmd_funds)
 
-    export = commands.add_parser("export", help="export funds to a .csv or .xlsx file")
+    export = commands.add_parser("export", help="export funds to a .csv, .xlsx or .html file")
     export.add_argument("path", type=Path, help="output file, e.g. funds.xlsx or funds.csv")
     add_filter_arguments(export)
     export.set_defaults(handler=cmd_export)

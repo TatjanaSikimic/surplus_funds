@@ -80,6 +80,31 @@ def test_excel(funds, tmp_path):
     assert sheet.freeze_panes == "A2"
 
 
+def test_html(funds, tmp_path):
+    path = tmp_path / "funds.html"
+    assert export_funds(funds, path) == 2
+
+    page = path.read_text(encoding="utf-8")
+    assert '<link rel="stylesheet" href="funds.css">' in page
+    assert (tmp_path / "funds.css").exists()
+    assert "2 funds, total $1,225.17" in page
+    assert '<td class="number">$1,220.17</td>' in page
+    assert "<td>2016-11-25</td>" in page
+    assert "ŠIKIMIĆ ĐORĐE" in page
+    # Jenkins blocks inline styles and scripts, so the page must not rely on them.
+    assert "<style" not in page
+    assert "<script" not in page
+
+
+def test_html_escapes_values(funds, tmp_path):
+    funds[0].owner_name = "<b>SMITH & SONS</b>"
+    path = tmp_path / "funds.html"
+    export_funds(funds, path)
+
+    page = path.read_text(encoding="utf-8")
+    assert "&lt;b&gt;SMITH &amp; SONS&lt;/b&gt;" in page
+
+
 def test_unsupported_extension(funds, tmp_path):
-    with pytest.raises(ValueError, match="use .csv or .xlsx"):
+    with pytest.raises(ValueError, match=r"use \.csv, \.xlsx, \.html"):
         export_funds(funds, tmp_path / "funds.pdf")
