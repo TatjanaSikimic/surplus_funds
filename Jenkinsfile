@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         DATABASE_URL = 'postgresql+psycopg://postgres:postgres@db:5432/surplus_funds'
-        REQUIRE_DB   = '1'
     }
 
     stages {
